@@ -15,7 +15,7 @@ class LearningRateFunctions:
         return 1 + math.log(1 - ((math.e - 1) / math.e) * x)
 
     @staticmethod
-    def exponential(x: float) -> float:
+    def exponential(x: float) -> float:  # pretty useless, logarithmic differs from exponential by less than a percent at worst
         return (math.e ** x) * (-1 / (math.e - 1)) + math.e / (math.e - 1)
 
     @staticmethod
@@ -29,7 +29,7 @@ epsilon = 15  # distance squared units
 step_sizes = (2.5, 2.5)
 false_grab_penalty = -epsilon  # currently unused
 first_rounds = 5000
-first_rounds_bonus = epsilon / 3
+first_rounds_bonus = 0  # epsilon / 3
 debug = True
 training_start = 500_000
 penalize_repetitions = 5  # penalize repetitions of the same action
@@ -38,3 +38,4 @@ delta = 0.01  # reward units
 histogram = [0 for i in range(11)]
 learning_rate_function = LearningRateFunctions.cosine
 learning_rate_base_rate = 1e-3
+max_unsuccessful_grabs = 400

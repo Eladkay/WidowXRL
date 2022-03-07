@@ -15,7 +15,7 @@ class WidowXSimulator:
     def __init__(self, widowx):
         self.widowx = widowx
         self.background = cv2.imread('../background.jpeg')
-        self.w, self.h, _ = self.background.shape
+        self.w, self.h, _ = (430, 320, 3)  # self.background.shape
         self.x_cube = random.randint(cf, self.w - cf)
         self.y_cube = random.randint(cf, self.h - cf)
         self.pos = ((self.bounds()[0][0] + self.bounds()[0][1]) / 2, (self.bounds()[1][0] + self.bounds()[1][1]) / 2)
@@ -42,7 +42,7 @@ class WidowXSimulator:
             change = (change[0], 0)
             if debug:
                 print("Y change out of bounds!")
-        self.pos = (self.pos[0] + change[0], self.pos[0] + change[1])
+        self.pos = (self.pos[0] + change[0], self.pos[1] + change[1])
         if count_training_rounds:
             self.training_rounds += 1
         if abs(self.last_action - direction) < delta:

@@ -57,7 +57,7 @@ class SimulatorEnv(gym.Env):
             self.successful_grabs += 1
         else:
             self.unsuccessful += 1
-            if self.unsuccessful == 75:
+            if self.unsuccessful == max_unsuccessful_grabs:
                 self.unsuccessful = 0
                 is_cube_in_gripper = True
         if debug:
