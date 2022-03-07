@@ -16,7 +16,8 @@ def do_agent():
     env = gym.make('SimulatorEnv-v0')
     action_noise = NormalActionNoise(mean=np.zeros(actions_dim), sigma=0.1 * np.ones(actions_dim))
     model = TD3('MlpPolicy', env, verbose=1, learning_starts=training_start, train_freq=(4, "episode"),
-                learning_rate=(lambda x: learning_rate_base_rate * learning_rate_function(x)),
+                learning_rate=(lambda x: learning_rate_function(x) * (learning_rate_max_rate - learning_rate_min_rate)
+                                         + learning_rate_min_rate),
                 action_noise=action_noise)
     model.learn(total_timesteps=10000000, log_interval=10)
     model.save("td3_simulator")
@@ -58,4 +59,3 @@ def start_random():
 
 if __name__ == "__main__":
     start_rl()
-

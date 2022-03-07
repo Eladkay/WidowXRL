@@ -27,7 +27,7 @@ class SimulatorEnv(gym.Env):
 
     def __init__(self, widowx: WidowXSimulator = WidowXSimulator(None)):  # later remove type annotation
         self.widowx = widowx
-        self.action_space = Box(low=-1, high=1, shape=(1,), dtype=np.float32)
+        self.action_space = Box(low=-1, high=1, shape=(2,), dtype=np.float32)
         self.observation_space = Box(low=0, high=1, shape=(3,), dtype=np.float32)
         self.successful_grabs = 0
         self.iteration = 0
@@ -36,8 +36,6 @@ class SimulatorEnv(gym.Env):
         self.reset()
 
     def step(self, action) -> Tuple[ndarray, float, bool, dict]:
-        if not isinstance(action, int):
-            action = action[0]
         # assert self.action_space.contains(action), f"Action {action} not in action space, {self.action_space}"
 
         if debug:
@@ -63,7 +61,7 @@ class SimulatorEnv(gym.Env):
         if debug:
             print(f'got reward: {reward}. iteration: {self.iteration}, successful grab: {self.successful_grabs}')
             print(f"state: {new_state, is_cube_in_gripper}")
-        return new_state, reward, is_cube_in_gripper, {}
+        return new_state, reward, True if is_cube_in_gripper else False, {}  # the `if` is not useless
 
     def reset(self) -> ndarray:
         if debug:
