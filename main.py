@@ -16,7 +16,7 @@ def do_agent():
     env = gym.make('SimulatorEnv-v0')
     model = TD3('MlpPolicy', env, verbose=1, learning_starts=training_start, train_freq=(10, "episode"),
                 learning_rate=(lambda x: learning_rate_function(x) * (learning_rate_max_rate - learning_rate_min_rate)
-                                         + learning_rate_min_rate))
+                                         + learning_rate_min_rate), tensorboard_log="tb_logs")
     model.learn(total_timesteps=10000000, log_interval=100, eval_freq=1000, n_eval_episodes=5,
                 eval_log_path="./rl_logs/")
     model.save("td3_simulator")

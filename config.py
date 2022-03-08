@@ -1,4 +1,5 @@
 import math
+from typing import Tuple
 
 
 class LearningRateFunctions:
@@ -9,11 +10,6 @@ class LearningRateFunctions:
     @staticmethod
     def linear(x: float) -> float:
         return x
-
-    @staticmethod
-    def logarithmic(x: float) -> float:
-        # pretty useless, logarithmic differs from exponential by less than a percent at worst
-        return -math.log(1 - ((math.e - 1) / math.e) * x)
 
     one_over_one_minus_e = 1 / (1 - math.e)
 
@@ -28,17 +24,42 @@ class LearningRateFunctions:
         return (1-math.cos(x)) * LearningRateFunctions.one_over_one_minus_cos_of_one
 
 
-# parameters
+class StepSizeFunctions:
+    @staticmethod
+    def constant(h: float, w: float) -> Tuple[float, float]:
+        return 2.5, 2.5
+
+    @staticmethod
+    def linear_avg(h: float, w: float) -> Tuple[float, float]:
+        return (h + w) / 300, (h + w) / 300
+
+
+class EpsilonFunctions:
+    @staticmethod
+    def constant(h: float, w: float) -> float:
+        return 15
+
+    @staticmethod
+    def linear_avg(h: float, w: float) -> float:
+        return (h + w) / 50
+
+
+# simulator and environment parameters
 cf = 2  # caution factor
-epsilon = 15  # distance squared units
-step_sizes = (2.5, 2.5)
-false_grab_penalty = -epsilon  # currently unused
-debug = True
+epsilon_function = EpsilonFunctions.linear_avg  # distance squared units
+step_size_function = StepSizeFunctions.linear_avg  # distance units
+max_unsuccessful_grabs = 400
+
+# algorithm parameters
+
 training_start = 500_000
 learning_rate_function = LearningRateFunctions.cosine
 learning_rate_max_rate = 1e-3
 learning_rate_min_rate = 1e-6
-max_unsuccessful_grabs = 400
+
+# debug settings
+
+debug = True
 reporting_frequency = 10000
 print_steps = False
 announce_out_of_bounds = False

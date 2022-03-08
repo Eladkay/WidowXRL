@@ -32,7 +32,7 @@ class WidowXSimulator:
         return max(min(value, max_value), min_value)
 
     def step(self, steps: Tuple[float, float]) -> Tuple[float, float]:
-        step_size_x, step_size_y = step_sizes
+        step_size_x, step_size_y = step_size_function(self.h, self.w)
         step_x, step_y = steps[0] * step_size_x, steps[1] * step_size_y
         bound_x_min, bound_x_max = self.bounds()[0]
         bound_y_min, bound_y_max = self.bounds()[1]
@@ -58,7 +58,7 @@ class WidowXSimulator:
         return (self.pos[0] - self.x_cube) ** 2 + (self.pos[1] - self.y_cube) ** 2
 
     def eval_pos(self) -> Tuple[bool, float]:
-        reward = (epsilon - self.distance_sq_from_target()) / self.diag_length_sq()
+        reward = (epsilon_function(self.h, self.w) - self.distance_sq_from_target()) / self.diag_length_sq()
         self.found = reward >= 0
         return self.found, reward
 
