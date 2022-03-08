@@ -12,15 +12,20 @@ class LearningRateFunctions:
 
     @staticmethod
     def logarithmic(x: float) -> float:
+        # pretty useless, logarithmic differs from exponential by less than a percent at worst
         return -math.log(1 - ((math.e - 1) / math.e) * x)
 
+    one_over_one_minus_e = 1 / (1 - math.e)
+
     @staticmethod
-    def exponential(x: float) -> float:  # pretty useless, logarithmic differs from exponential by less than a percent at worst
-        return (math.e ** x) * (1 / (math.e - 1)) - 1 / (math.e - 1)
+    def exponential(x: float) -> float:
+        return (1 - (math.e ** x)) * LearningRateFunctions.one_over_one_minus_e
+
+    one_over_one_minus_cos_of_one = 1 / (1 - math.cos(1))
 
     @staticmethod
     def cosine(x: float) -> float:
-        return -math.cos(x)/(1-math.cos(1)) + 1/(1-math.cos(1))
+        return (1-math.cos(x)) * LearningRateFunctions.one_over_one_minus_cos_of_one
 
 
 # parameters
@@ -34,3 +39,6 @@ learning_rate_function = LearningRateFunctions.cosine
 learning_rate_max_rate = 1e-3
 learning_rate_min_rate = 1e-6
 max_unsuccessful_grabs = 400
+reporting_frequency = 10000
+print_steps = False
+announce_out_of_bounds = False

@@ -37,16 +37,14 @@ class WidowXSimulator:
         bound_x_min, bound_x_max = self.bounds()[0]
         bound_y_min, bound_y_max = self.bounds()[1]
         change = (step_x, step_y)
-        if not (bound_x_min <= self.pos[0] + change[0] <= bound_x_max):
-            if debug:
-                print("X change out of bounds!")
-        if not (bound_y_min <= self.pos[1] + change[1] <= bound_y_max):
-            if debug:
-                print("Y change out of bounds!")
+        if announce_out_of_bounds and not (bound_x_min <= self.pos[0] + change[0] <= bound_x_max):
+            print("X change out of bounds!")
+        if announce_out_of_bounds and not (bound_y_min <= self.pos[1] + change[1] <= bound_y_max):
+            print("Y change out of bounds!")
         self.pos = (WidowXSimulator.clip(self.pos[0] + change[0], bound_x_min, bound_x_max),
                     WidowXSimulator.clip(self.pos[1] + change[1], bound_y_min, bound_y_max))
         self.last_action = steps
-        if debug:
+        if print_steps:
             print("Step: ", change)
         return self.pos
 
@@ -69,6 +67,5 @@ class WidowXSimulator:
         self.y_cube = random.randint(cf, self.h - cf)
         self.found = False
         self.pos = ((self.bounds()[0][0] + self.bounds()[0][1]) / 2, (self.bounds()[1][0] + self.bounds()[1][1]) / 2)
-        # self.repetitions = 0
-        if debug:
-            print(f"calling reset in simulator")
+        # if debug:
+        #     print(f"calling reset in simulator")
