@@ -1,7 +1,5 @@
 import random
-from typing import Tuple
-
-import cv2
+import image_creator
 
 from config import *
 
@@ -12,8 +10,8 @@ rewards = []  # for debug
 class WidowXSimulator:
     def __init__(self, widowx):
         self.widowx = widowx
-        self.background = cv2.imread('../background.jpeg')
-        self.w, self.h, _ = (430, 320, 3)  # self.background.shape
+        self.background = cv2.imread('images/background.png')
+        self.w, self.h, _ = self.background.shape
         self.x_cube = random.randint(cf, self.w - cf)
         self.y_cube = random.randint(cf, self.h - cf)
         self.pos = ((self.bounds()[0][0] + self.bounds()[0][1]) / 2, (self.bounds()[1][0] + self.bounds()[1][1]) / 2)
@@ -21,6 +19,7 @@ class WidowXSimulator:
         self.training_rounds = 0
         self.repetitions = 0
         self.last_action = 0
+        self.image = image_creator.create_img(self.x_cube, self.y_cube)
         if debug:
             print(f"Size: {self.w, self.h}")
 
@@ -67,5 +66,7 @@ class WidowXSimulator:
         self.y_cube = random.randint(cf, self.h - cf)
         self.found = False
         self.pos = ((self.bounds()[0][0] + self.bounds()[0][1]) / 2, (self.bounds()[1][0] + self.bounds()[1][1]) / 2)
-        # if debug:
-        #     print(f"calling reset in simulator")
+
+    def get_image(self):
+        return self.image
+

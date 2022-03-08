@@ -3,7 +3,7 @@ from typing import Tuple
 
 import gym
 import numpy as np
-from gym.spaces import Box
+from gym.spaces import Box, Dict
 from gym.utils import seeding
 from numpy import ndarray
 from config import *
@@ -31,7 +31,9 @@ class SimulatorEnv(gym.Env):
     def __init__(self, widowx: WidowXSimulator = WidowXSimulator(None)):  # later remove type annotation
         self.widowx = widowx
         self.action_space = Box(low=-1, high=1, shape=(2,), dtype=np.float32)
-        self.observation_space = Box(low=0, high=1, shape=(4,), dtype=np.float32)
+        self.observation_space = Dict({"x": Box(low=0, high=1, shape=(1, ), dtype=np.float32),
+                                       "y": Box(low=0, high=1, shape=(1,), dtype=np.float32),
+                                       "image": Box(low=0, high=255, shape=(320, 430, 3), dtype=np.uint8)})
         self.successful_grabs = 0
         self.iteration = 0
         self.unsuccessful = 0
@@ -41,7 +43,7 @@ class SimulatorEnv(gym.Env):
     def get_direction_between_points(a, b):
         return math.atan2(b[1] - a[1], b[0] - a[0])
 
-    def step(self, action) -> Tuple[ndarray, float, bool, dict]:
+    def step(self, action) -> Tuple[dict, float, bool, dict]:
         # assert self.action_space.contains(action), f"Action {action} not in action space, {self.action_space}"
 
         if debug and reporting_frequency > 0 and self.iteration % reporting_frequency == 0:
@@ -54,14 +56,10 @@ class SimulatorEnv(gym.Env):
 
         self.widowx.step(action)
         is_cube_in_gripper, reward = self.widowx.eval_pos()
-        state_raw = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1],
-                                                        self.widowx.distance_sq_from_target(),
-                                                        SimulatorEnv.get_direction_between_points(self.widowx.pos,
-                                                                                                  (self.widowx.x_cube,
-                                                                                                   self.widowx.y_cube)))
-        new_state = np.array(state_raw, dtype=np.float32)
-        if len(list(filter(lambda x: math.isnan(x), state_raw))) > 0:
-            print("nan in state")
+        pos_normalized = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1])
+        new_state = {"x": np.array([pos_normalized[0]]),
+                     "y": np.array([pos_normalized[1]]),
+                     "image": self.widowx.get_image()}
         if is_cube_in_gripper:
             self.successful_grabs += 1
         else:
@@ -71,7 +69,8 @@ class SimulatorEnv(gym.Env):
                 is_cube_in_gripper = True
         if debug and reporting_frequency > 0 and self.iteration % reporting_frequency == 0:
             print(f'got reward: {reward}. iteration: {self.iteration}, successful grab: {self.successful_grabs}')
-            print(f"state: {new_state, is_cube_in_gripper}")
+            if print_state:
+                print(f"state: {new_state, is_cube_in_gripper}")
             if self.successful_grabs > 0:
                 print(f"score (lower is better): {self.iteration / (1000 * self.successful_grabs)}")
             if self.iteration < training_start:
@@ -80,20 +79,13 @@ class SimulatorEnv(gym.Env):
                 print("actor round (real steps)")
         return new_state, reward, True if is_cube_in_gripper else False, {}  # the `if` is not useless
 
-    def reset(self) -> ndarray:
+    def reset(self) -> dict:
         if debug and reporting_frequency > 0 and self.iteration % reporting_frequency == 0:
             print("calling reset in env")
         self.widowx.reset()
         self.unsuccessful = 0
-        state_raw = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1],
-                                               self.widowx.distance_sq_from_target(),
-                                               SimulatorEnv.get_direction_between_points(self.widowx.pos,
-                                                                                         (self.widowx.x_cube,
-                                                                                          self.widowx.y_cube)))
-        new_state = np.array(state_raw, dtype=np.float32)
-        if len(list(filter(lambda x: math.isnan(x), state_raw))) > 0:
-            print("nan in state")
-        return new_state
+        pos_normalized = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1])
+        return {"x": np.array([pos_normalized[0]]), "y": np.array([pos_normalized[1]]), "image": self.widowx.get_image()}
 
 
 def register_env():

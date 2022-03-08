@@ -45,7 +45,8 @@ class EpsilonFunctions:
 
 
 # simulator and environment parameters
-cf = 2  # caution factor
+
+cf = 50  # caution factor
 epsilon_function = EpsilonFunctions.linear_avg  # distance squared units
 step_size_function = StepSizeFunctions.linear_avg  # distance units
 max_unsuccessful_grabs = 400
@@ -56,11 +57,13 @@ training_start = 500_000
 learning_rate_function = LearningRateFunctions.cosine
 learning_rate_max_rate = 1e-3
 learning_rate_min_rate = 1e-6
+buffer_size = 75_000
 
 # image creator parameters
 background = cv2.imread('images/background.png')
-cubes = [cv2.imread('images/final_cube1.png'), cv2.imread('images/final_cube2.png'), cv2.imread('images/final_cube3.png')]
-
+cubes = [cv2.imread('images/final_cube1.png'), cv2.imread('images/final_cube2.png'), cv2.imread(
+    'images/final_cube3.png')]
+write_image_to_file = False
 
 # debug settings
 
@@ -68,3 +71,4 @@ debug = True
 reporting_frequency = 10000
 print_steps = False
 announce_out_of_bounds = False
+print_state = False

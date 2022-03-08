@@ -1,13 +1,15 @@
 import numpy as np
 import cv2
 from random import randint
+from config import *
 
 
-def create_img(background, cubes, x, y):
+# noinspection DuplicatedCode
+def create_img(x_img, y_img):
     cube = cubes[randint(0, len(cubes) - 1)]
     new_cube = np.zeros(background.shape)
-    x_offset = int(x - (cube.shape[0] / 2))
-    y_offset = int(y - (cube.shape[1] / 2))
+    x_offset = int(x_img - (cube.shape[0] / 2))
+    y_offset = int(y_img - (cube.shape[1] / 2))
 
     new_cube[y_offset:y_offset + cube.shape[0], x_offset:x_offset + cube.shape[1]] = cube
 
@@ -21,15 +23,7 @@ def create_img(background, cubes, x, y):
             else:
                 final[iw][ih] = new_cube[iw][ih]
 
-    # remove in training
-    cv2.imwrite('images/overlay.png', final)
+    if write_image_to_file:
+        cv2.imwrite('images/overlay.png', final)
     return final
 
-
-if __name__ == '__main__':
-    from config import background, cubes
-    c = 50
-
-    x, y = randint(c, background.shape[1] - c), randint(c, background.shape[0] - c)
-    print(f'x: {x}, y: {y}')
-    create_img(background, cubes, x, y)
