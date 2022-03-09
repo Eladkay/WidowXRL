@@ -23,6 +23,14 @@ class LearningRateFunctions:
     def cosine(x: float) -> float:
         return (1-math.cos(x)) * LearningRateFunctions.one_over_one_minus_cos_of_one
 
+    @staticmethod
+    def quadratic(x: float) -> float:
+        return x ** 2
+
+    @staticmethod
+    def inv_quadratic(x: float) -> float:
+        return 1 - (x - 1) ** 2
+
 
 class StepSizeFunctions:
     @staticmethod
@@ -54,10 +62,10 @@ max_unsuccessful_grabs = 400
 # algorithm parameters
 
 training_start = 500_000
-learning_rate_function = LearningRateFunctions.cosine
+learning_rate_function = LearningRateFunctions.inv_quadratic
 learning_rate_max_rate = 1e-3
 learning_rate_min_rate = 1e-6
-buffer_size = 75_000
+buffer_size = 100_000
 
 # image creator parameters
 background = cv2.imread('images/background.png')
