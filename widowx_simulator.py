@@ -19,7 +19,7 @@ class WidowXSimulator:
         self.training_rounds = 0
         self.repetitions = 0
         self.last_action = 0
-        self.image = image_creator.create_img(self.x_cube, self.y_cube)
+        self.image = image_creator.create_binary_img(self.x_cube, self.y_cube)
         if debug:
             print(f"Size: {self.w, self.h}")
 

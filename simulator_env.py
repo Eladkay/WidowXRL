@@ -41,7 +41,7 @@ class SimulatorEnv(gym.Env):
         self.widowx = widowx
         self.action_space = Box(low=-1, high=1, shape=(2,), dtype=np.float32)
         self.observation_space = Dict({"pos": Box(low=0, high=1, shape=(2, ), dtype=np.float32),
-                                       "image": Box(low=0, high=255, shape=(320, 430, 2), dtype=np.uint8)})
+                                       "image": Box(low=0, high=255, shape=(320, 430, 1), dtype=np.uint8)})
         self.successful_grabs = 0
         self.iteration = 0
         self.unsuccessful = 0
