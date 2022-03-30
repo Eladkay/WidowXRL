@@ -67,7 +67,7 @@ class SimulatorEnv(gym.Env):
         is_cube_in_gripper, reward = self.widowx.eval_pos()
         pos_normalized = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1])
         new_state = {"pos": np.array([pos_normalized[0], pos_normalized[1]]),
-                "image": SimulatorEnv.reduce_dim(self.widowx.get_image())}
+                "image": self.widowx.get_image()}
         if is_cube_in_gripper:
             self.successful_grabs += 1
         else:
@@ -94,7 +94,7 @@ class SimulatorEnv(gym.Env):
         self.unsuccessful = 0
         pos_normalized = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1])
         return {"pos": np.array([pos_normalized[0], pos_normalized[1]]),
-                "image": SimulatorEnv.reduce_dim(self.widowx.get_image())}
+                "image": self.widowx.get_image()}
 
 
 def register_env():

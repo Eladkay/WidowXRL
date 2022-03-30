@@ -65,7 +65,7 @@ training_start = 500_000
 learning_rate_function = LearningRateFunctions.inv_quadratic
 learning_rate_max_rate = 1e-3
 learning_rate_min_rate = 1e-6
-buffer_size = 100_000
+buffer_size = 200_000
 
 # image creator parameters
 background = cv2.imread('images/background.png')
