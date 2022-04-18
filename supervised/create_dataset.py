@@ -17,5 +17,6 @@ def create_dataset(size):
     with open('labels.pickle', 'wb') as f:
         pickle.dump(labels, f)
 
+
 if __name__ == '__main__':
     create_dataset(5)
