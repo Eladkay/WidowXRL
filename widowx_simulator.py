@@ -19,7 +19,7 @@ class WidowXSimulator:
         self.training_rounds = 0
         self.repetitions = 0
         self.last_action = 0
-        self.image = image_creator.create_binary_img(self.x_cube, self.y_cube)
+        self.image = image_creator.create_binary_img(self.y_cube, self.x_cube)
         if debug:
             print(f"Size: {self.w, self.h}")
 
@@ -66,6 +66,7 @@ class WidowXSimulator:
         self.y_cube = random.randint(cf, self.h - cf)
         self.found = False
         self.pos = ((self.bounds()[0][0] + self.bounds()[0][1]) / 2, (self.bounds()[1][0] + self.bounds()[1][1]) / 2)
+        self.image = image_creator.create_binary_img(self.y_cube, self.x_cube)
 
     def get_image(self):
         return self.image
