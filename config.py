@@ -36,11 +36,11 @@ class LearningRateFunctions:
 class StepSizeFunctions:
     @staticmethod
     def constant(h: float, w: float) -> Tuple[float, float]:
-        return 2.5, 2.5
+        return 10.0, 10.0
 
     @staticmethod
     def linear_avg(h: float, w: float) -> Tuple[float, float]:
-        return (h + w) / 300, (h + w) / 300
+        return (h + w) / 75, (h + w) / 75
 
 
 class EpsilonFunctions:
@@ -58,14 +58,14 @@ class EpsilonFunctions:
 cf = 20  # caution factor
 epsilon_function = EpsilonFunctions.linear_avg  # distance squared units
 step_size_function = StepSizeFunctions.linear_avg  # distance units
-max_unsuccessful_grabs = 400
+max_unsuccessful_grabs = 1000
 
 # algorithm parameters
 
-training_start = 250_000
-learning_rate_function = LearningRateFunctions.linear
-learning_rate_max_rate = 5e-3
-learning_rate_min_rate = 5e-6
+training_start = 500_000
+learning_rate_function = LearningRateFunctions.inv_quadratic
+learning_rate_max_rate = 1e-3
+learning_rate_min_rate = 1e-6
 buffer_size = 1_000_000
 
 # image creator parameters

@@ -18,7 +18,7 @@ def do_agent():
                                          + learning_rate_min_rate), tensorboard_log="tb_logs_supervised",
                 buffer_size=buffer_size)
     model.learn(total_timesteps=10000000, log_interval=100, eval_freq=1000, n_eval_episodes=5,
-                eval_log_path="./rl_logs/")
+                eval_log_path="./rl_logs/", callback=TensorboardCallback(env))
     model.save("td3_simulator")
 
 

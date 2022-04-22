@@ -2,10 +2,14 @@ import math
 from typing import Tuple
 
 import gym
+import tensorboard
+import tensorflow
 import numpy as np
 from gym.spaces import Box, Dict
 from gym.utils import seeding
 from numpy import ndarray
+from stable_baselines3.common.callbacks import BaseCallback
+
 from rl_project.config import *
 from rl_project.supervised.predict_location import predict, predict_from_img
 from rl_project.widowx_simulator import WidowXSimulator
@@ -117,3 +121,16 @@ def register_env():
         entry_point='rl_project.simulator_env:SimulatorEnv',
         max_episode_steps=1000,
     )
+
+
+class TensorboardCallback(BaseCallback):  # doesn't work :(
+    def __init__(self, env: SimulatorEnv, verbose=0):
+        self.env = env
+        super(TensorboardCallback, self).__init__(verbose)
+
+    def _on_step(self) -> bool:
+        if self.env.successful_grabs == 0:
+            return True
+        value = self.env.iteration / (1000 * self.env.successful_grabs)
+        tensorflow.summary.scalar("score", value, step=self.env.iteration)
+        return True
