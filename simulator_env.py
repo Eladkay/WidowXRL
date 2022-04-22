@@ -7,7 +7,9 @@ from gym.spaces import Box, Dict
 from gym.utils import seeding
 from numpy import ndarray
 from config import *
+from rl_project.supervised.predict_location import predict, predict_from_img
 from widowx_simulator import WidowXSimulator
+clip = WidowXSimulator.clip
 
 actions_dim = 1
 
@@ -23,10 +25,11 @@ class SimulatorEnv(gym.Env):
                 2 * math.pi * angle - math.pi if angle else 0.0)
 
     def regular_to_normalized(self, x, y, distance=None, angle=None):
-        return ((x - self.widowx.bounds()[0][0]) / (self.widowx.bounds()[0][1] - self.widowx.bounds()[0][0]),
+        x_n, y_n, d_n, a_n = ((x - self.widowx.bounds()[0][0]) / (self.widowx.bounds()[0][1] - self.widowx.bounds()[0][0]),
                 (y - self.widowx.bounds()[1][0]) / (self.widowx.bounds()[1][1] - self.widowx.bounds()[1][0]),
                 distance / self.widowx.diag_length_sq() if distance else 0.0,
                 angle / (2 * math.pi) + 0.5 if angle else 0.0)
+        return clip(x_n, 0, 1), clip(y_n, 0, 1), clip(d_n, 0, 1), clip(a_n, 0, 1)
 
     @staticmethod
     def reduce_dim(old_img: ndarray) -> ndarray:
@@ -40,16 +43,27 @@ class SimulatorEnv(gym.Env):
     def __init__(self, widowx: WidowXSimulator = WidowXSimulator(None)):  # later remove type annotation
         self.widowx = widowx
         self.action_space = Box(low=-1, high=1, shape=(2,), dtype=np.float32)
-        self.observation_space = Dict({"pos": Box(low=0, high=1, shape=(2, ), dtype=np.float32),
-                                       "image": Box(low=0, high=255, shape=(320, 430, 1), dtype=np.uint8)})
+        self.observation_space = Dict({"self_pos": Box(low=0, high=1, shape=(2, ), dtype=np.float32),
+                                       "obj_pos": Box(low=0, high=1, shape=(2, ), dtype=np.float32)})
         self.successful_grabs = 0
         self.iteration = 0
         self.unsuccessful = 0
+        self.prediction = None
         self.reset()
+
 
     @staticmethod
     def get_direction_between_points(a, b):
         return math.atan2(b[1] - a[1], b[0] - a[0])
+
+    def get_state(self) -> dict:
+        self_pos_normalized = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1])
+        obj_pos_guess = (self.widowx.x_cube, self.widowx.y_cube) \
+            if use_real_pos else self.prediction
+        obj_pos_normalized = self.regular_to_normalized(obj_pos_guess[0], obj_pos_guess[1])
+        new_state = {"self_pos": np.array([self_pos_normalized[0], self_pos_normalized[1]]),
+                     "obj_pos": np.array([obj_pos_normalized[0], obj_pos_normalized[1]])}
+        return new_state
 
     def step(self, action) -> Tuple[dict, float, bool, dict]:
         # assert self.action_space.contains(action), f"Action {action} not in action space, {self.action_space}"
@@ -65,9 +79,7 @@ class SimulatorEnv(gym.Env):
 
         self.widowx.step(action)
         is_cube_in_gripper, reward = self.widowx.eval_pos()
-        pos_normalized = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1])
-        new_state = {"pos": np.array([pos_normalized[0], pos_normalized[1]]),
-                "image": self.widowx.get_image()}
+        new_state = self.get_state()
         if is_cube_in_gripper:
             self.successful_grabs += 1
         else:
@@ -92,9 +104,8 @@ class SimulatorEnv(gym.Env):
             print("calling reset in env")
         self.widowx.reset()
         self.unsuccessful = 0
-        pos_normalized = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1])
-        return {"pos": np.array([pos_normalized[0], pos_normalized[1]]),
-                "image": self.widowx.get_image()}
+        self.prediction = predict_from_img(self.widowx.get_image())
+        return self.get_state()
 
 
 def register_env():

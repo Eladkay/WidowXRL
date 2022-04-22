@@ -56,9 +56,12 @@ class WidowXSimulator:
     def distance_sq_from_target(self) -> float:
         return (self.pos[0] - self.x_cube) ** 2 + (self.pos[1] - self.y_cube) ** 2
 
+    def max_reward(self):
+        return epsilon_function(self.h, self.w) / self.diag_length_sq()
+
     def eval_pos(self) -> Tuple[bool, float]:
         reward = (epsilon_function(self.h, self.w) - self.distance_sq_from_target()) / self.diag_length_sq()
-        self.found = reward >= 0
+        self.found = reward >= (self.max_reward() * 0.5)
         return self.found, reward
 
     def reset(self):

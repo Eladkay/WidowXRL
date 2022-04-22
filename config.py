@@ -61,22 +61,28 @@ max_unsuccessful_grabs = 400
 
 # algorithm parameters
 
-training_start = 500_000
+training_start = 50_000
 learning_rate_function = LearningRateFunctions.inv_quadratic
 learning_rate_max_rate = 1e-3
 learning_rate_min_rate = 1e-6
 buffer_size = 200_000
 
 # image creator parameters
+
 background = cv2.imread('images/background.png')
 cubes = [cv2.imread('images/final_cube1.png'), cv2.imread('images/final_cube2.png'), cv2.imread(
     'images/final_cube3.png')]
 write_image_to_file = False
+RESIZE_FACTOR = 4
+
+# predictor parameters
+base_model_path = "/tmp/pycharm_project_970/rl_project/supervised"
 
 # debug settings
 
 debug = True
-reporting_frequency = 10000
+reporting_frequency = 50
 print_steps = False
 announce_out_of_bounds = False
-print_state = False
+print_state = True
+use_real_pos = False
