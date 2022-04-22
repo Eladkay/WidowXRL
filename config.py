@@ -2,6 +2,7 @@ import math
 from typing import Tuple
 import cv2
 
+
 class LearningRateFunctions:
     @staticmethod
     def constant(x: float) -> float:
@@ -54,18 +55,18 @@ class EpsilonFunctions:
 
 # simulator and environment parameters
 
-cf = 50  # caution factor
+cf = 20  # caution factor
 epsilon_function = EpsilonFunctions.linear_avg  # distance squared units
 step_size_function = StepSizeFunctions.linear_avg  # distance units
 max_unsuccessful_grabs = 400
 
 # algorithm parameters
 
-training_start = 50_000
-learning_rate_function = LearningRateFunctions.inv_quadratic
-learning_rate_max_rate = 1e-3
-learning_rate_min_rate = 1e-6
-buffer_size = 200_000
+training_start = 250_000
+learning_rate_function = LearningRateFunctions.linear
+learning_rate_max_rate = 5e-3
+learning_rate_min_rate = 5e-6
+buffer_size = 1_000_000
 
 # image creator parameters
 
@@ -73,9 +74,10 @@ background = cv2.imread('images/background.png')
 cubes = [cv2.imread('images/final_cube1.png'), cv2.imread('images/final_cube2.png'), cv2.imread(
     'images/final_cube3.png')]
 write_image_to_file = False
-RESIZE_FACTOR = 4
+resize_factor = 4
 
 # predictor parameters
+
 base_model_path = "/tmp/pycharm_project_970/rl_project/supervised"
 
 # debug settings

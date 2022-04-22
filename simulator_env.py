@@ -6,9 +6,9 @@ import numpy as np
 from gym.spaces import Box, Dict
 from gym.utils import seeding
 from numpy import ndarray
-from config import *
+from rl_project.config import *
 from rl_project.supervised.predict_location import predict, predict_from_img
-from widowx_simulator import WidowXSimulator
+from rl_project.widowx_simulator import WidowXSimulator
 clip = WidowXSimulator.clip
 
 actions_dim = 1
@@ -48,9 +48,9 @@ class SimulatorEnv(gym.Env):
         self.successful_grabs = 0
         self.iteration = 0
         self.unsuccessful = 0
+        self.failures = 0
         self.prediction = None
         self.reset()
-
 
     @staticmethod
     def get_direction_between_points(a, b):
@@ -87,8 +87,11 @@ class SimulatorEnv(gym.Env):
             if self.unsuccessful == max_unsuccessful_grabs:
                 self.unsuccessful = 0
                 is_cube_in_gripper = True
+                if self.iteration > training_start:
+                    self.failures += 1
         if debug and reporting_frequency > 0 and self.iteration % reporting_frequency == 0:
-            print(f'got reward: {reward}. iteration: {self.iteration}, successful grab: {self.successful_grabs}')
+            print(f'got reward: {reward}. iteration: {self.iteration}, successful grab: {self.successful_grabs}, '
+                  f'failures after training start: {self.failures}')
             if print_state:
                 print(f"state: {new_state, is_cube_in_gripper}")
             if self.successful_grabs > 0:
@@ -111,6 +114,6 @@ class SimulatorEnv(gym.Env):
 def register_env():
     gym.envs.register(
         id='SimulatorEnv-v0',
-        entry_point='simulator_env:SimulatorEnv',
+        entry_point='rl_project.simulator_env:SimulatorEnv',
         max_episode_steps=1000,
     )

@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 from random import randint
-from config import *
+from rl_project.config import *
 
 
 # noinspection DuplicatedCode

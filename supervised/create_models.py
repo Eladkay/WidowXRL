@@ -5,7 +5,7 @@ from keras.regularizers import l2
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Conv2D, Activation, BatchNormalization, MaxPooling2D, Dropout
 import imutils
-from rl_project.config import RESIZE_FACTOR
+from rl_project.config import resize_factor
 
 def create_model(X, Y, *, last_layer_size, epochs=1, model_name='model.h5'):
     print(f'Creating model: {model_name}')
@@ -51,10 +51,10 @@ def create_both():
     # Load the data
     with open('labels.pickle', 'rb') as f:
         Y = pickle.load(f)  # format: y, x
-        Y_x = [int(x / RESIZE_FACTOR) for [_, x] in Y]
-        Y_y = [int(y / RESIZE_FACTOR) for [y, _] in Y]
+        Y_x = [int(x / resize_factor) for [_, x] in Y]
+        Y_y = [int(y / resize_factor) for [y, _] in Y]
     X = [cv2.imread('dataset_binary/' + str(i) + '.png') / 255 for i in range(len(Y))]
-    w, h = int(X[0].shape[1] / RESIZE_FACTOR), int(X[0].shape[0] / RESIZE_FACTOR)
+    w, h = int(X[0].shape[1] / resize_factor), int(X[0].shape[0] / resize_factor)
     X = [imutils.resize(img, width=w) for img in X]
 
     # create models
