@@ -3,7 +3,7 @@ import cv2
 import keras
 import imutils
 from random import randint
-from Aux import *
+from create_dataset import *
 
 x_model = keras.models.load_model('x_model.h5')
 y_model = keras.models.load_model('y_model.h5')
@@ -24,7 +24,7 @@ def predict(x, y):
 
 
 if __name__ == '__main__':
-    c = 50
+    c = 20
     for _ in range(5):
         x, y = randint(c, background.shape[1] - c), randint(c, background.shape[0] - c)
         predict(x, y)

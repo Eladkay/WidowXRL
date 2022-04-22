@@ -5,13 +5,20 @@ from keras.regularizers import l2
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Conv2D, Activation, BatchNormalization, MaxPooling2D, Dropout
 import imutils
-from Aux import ResizeFactor
+from create_dataset import RESIZE_FACTOR
+
 
 def create_model(X, Y, *, last_layer_size, epochs=1, model_name='model.h5'):
     print(f'Creating model: {model_name}')
     # split the data
     x_train, x_val, x_test = X[:int(len(X) * 0.7)], X[int(len(X) * 0.7):int(len(X) * 0.8)], X[int(len(X) * 0.8):]
     y_train, y_val, y_test = Y[:int(len(Y) * 0.7)], Y[int(len(Y) * 0.7):int(len(Y) * 0.8)], Y[int(len(Y) * 0.8):]
+    x_train = np.asarray(x_train)
+    y_train = np.asarray(y_train)
+    x_val = np.asarray(x_val)
+    y_val = np.asarray(y_val)
+    x_test = np.asarray(x_test)
+    y_test = np.asarray(y_test)
 
     # create model
     model = Sequential([
@@ -52,8 +59,8 @@ def create_both():
     X = [imutils.resize(img, width=w) for img in X]
 
     # create models
-    create_model(X, Y_x, last_layer_size=w, epochs=1, model_name='x_model.h5')
-    create_model(X, Y_y, last_layer_size=h, epochs=1, model_name='y_model.h5')
+    create_model(X, Y_x, last_layer_size=w, epochs=10, model_name='x_model.h5')
+    create_model(X, Y_y, last_layer_size=h, epochs=10, model_name='y_model.h5')
 
 
 if __name__ == '__main__':
