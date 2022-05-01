@@ -3,12 +3,25 @@ import numpy as np
 import cv2
 from keras.regularizers import l2
 from keras.models import Sequential
-from keras.layers import Dense, Flatten, Conv2D, Activation, BatchNormalization, MaxPooling2D, Dropout
+from keras.layers import Dense, Flatten, Conv2D, Activation, BatchNormalization, MaxPooling2D, Dropout, RandomFlip, \
+    RandomRotation, RandomZoom, Rescaling
 import imutils
+from tensorflow import keras
+
 from rl_project.config import resize_factor
 
-def create_model(X, Y, *, last_layer_size, epochs=1, model_name='model.h5'):
-    print(f'Creating model: {model_name}')
+
+def create_both():
+    # Load the data
+    with open('labels.pickle', 'rb') as f:
+        Y = pickle.load(f)  # format: y, x
+        Y_xy = [(int(x / resize_factor), int(y / resize_factor)) for [y, x] in Y]
+    X = [cv2.imread('dataset_binary/' + str(i) + '.png') / 255 for i in range(len(Y))]
+    w, h = int(X[0].shape[1] / resize_factor), int(X[0].shape[0] / resize_factor)
+    X = [imutils.resize(img, width=w) for img in X]
+
+    # create models
+    print(f'Creating model: xy_model_alt.h5')
     # split the data
     x_train, x_val, x_test = X[:int(len(X) * 0.7)], X[int(len(X) * 0.7):int(len(X) * 0.8)], X[int(len(X) * 0.8):]
     y_train, y_val, y_test = Y[:int(len(Y) * 0.7)], Y[int(len(Y) * 0.7):int(len(Y) * 0.8)], Y[int(len(Y) * 0.8):]
@@ -20,19 +33,34 @@ def create_model(X, Y, *, last_layer_size, epochs=1, model_name='model.h5'):
     y_test = np.asarray(y_test)
 
     # create model
+    data_augmentation = keras.Sequential(
+        [
+            RandomFlip("horizontal", input_shape=(h - 1, w, 3)),
+            RandomRotation(0.1),
+            RandomZoom(0.1),
+        ]
+    )
     model = Sequential([
-        Flatten(input_shape=X[0].shape),
-        Dense(8192, activation='relu', kernel_regularizer=l2(0.01)),
-        Dropout(0.5),
-        Dense(1024, activation='relu', kernel_regularizer=l2(0.01)),
-        Dense(last_layer_size, activation='softmax', kernel_regularizer=l2(0.01))
+        data_augmentation,
+        Rescaling(1. / 255),
+        Conv2D(16, 3, padding='same', activation='relu'),
+        MaxPooling2D(),
+        Conv2D(32, 3, padding='same', activation='relu'),
+        MaxPooling2D(),
+        Conv2D(64, 3, padding='same', activation='relu'),
+        MaxPooling2D(),
+        Dropout(0.2),
+        Flatten(),
+        Dense(128, activation='relu'),
+        Dense(len(Y_xy))
     ])
     model.compile(optimizer='adam',
-                  loss='sparse_categorical_crossentropy',
+                  loss=keras.losses.SparseCategoricalCrossentropy,
                   metrics=['accuracy']
                   )
+
     # train model
-    model.fit(x_train, y_train, batch_size=32, epochs=epochs, validation_data=(x_val, y_val))
+    model.fit(x_train, y_train, batch_size=32, epochs=20, validation_data=(x_val, y_val))
 
     # evaluation
     print('\nEvaluation:')
@@ -44,22 +72,7 @@ def create_model(X, Y, *, last_layer_size, epochs=1, model_name='model.h5'):
     preds = [(np.argmax(pred[i]), y_test[i]) for i in range(len(pred))]
     print(preds)
 
-    model.save(model_name)
-
-
-def create_both():
-    # Load the data
-    with open('labels.pickle', 'rb') as f:
-        Y = pickle.load(f)  # format: y, x
-        Y_x = [int(x / resize_factor) for [_, x] in Y]
-        Y_y = [int(y / resize_factor) for [y, _] in Y]
-    X = [cv2.imread('dataset_binary/' + str(i) + '.png') / 255 for i in range(len(Y))]
-    w, h = int(X[0].shape[1] / resize_factor), int(X[0].shape[0] / resize_factor)
-    X = [imutils.resize(img, width=w) for img in X]
-
-    # create models
-    create_model(X, Y_x, last_layer_size=w, epochs=10, model_name='x_model.h5')
-    create_model(X, Y_y, last_layer_size=h, epochs=10, model_name='y_model.h5')
+    model.save("xy_model_alt.h5")
 
 
 if __name__ == '__main__':

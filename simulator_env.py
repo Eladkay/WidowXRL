@@ -22,6 +22,30 @@ class SimulatorEnv(gym.Env):
     def render(self, mode='human'):
         pass
 
+    @staticmethod
+    def yagel_predict(param):
+        """
+            I was having problems with the supervised model, so I asked around and explained the problem.
+            A guy called Yagel said "Why don't you just go over the image and check where the white pixels are?"
+            "Not everything has to involve machine learning", he said. I scoffed. But then I thought, "Why not?"
+        """
+        white_pixels = []
+        for i in range(param.shape[0]):
+            for j in range(param.shape[1]):
+                if param[i, j].max() > 0:
+                    white_pixels.append((i, j))
+        top_x, top_y, bottom_x, bottom_y = 0, 0, 0, 0
+        for i in range(len(white_pixels)):
+            if white_pixels[i][0] < top_x:
+                top_x = white_pixels[i][0]
+            if white_pixels[i][1] < top_y:
+                top_y = white_pixels[i][1]
+            if white_pixels[i][0] > bottom_x:
+                bottom_x = white_pixels[i][0]
+            if white_pixels[i][1] > bottom_y:
+                bottom_y = white_pixels[i][1]
+        return (top_x + bottom_x) / 2, (top_y + bottom_y) / 2
+
     def normalized_to_regular(self, x, y, distance=None, angle=None):
         return ((1 - x) * (self.widowx.bounds()[0][0] - self.widowx.bounds()[0][1]) + x * (self.widowx.bounds()[0][1]),
                 (1 - y) * (self.widowx.bounds()[1][0] - self.widowx.bounds()[1][1]) + y * (self.widowx.bounds()[1][1]),
@@ -53,7 +77,8 @@ class SimulatorEnv(gym.Env):
         self.iteration = 0
         self.unsuccessful = 0
         self.failures = 0
-        self.prediction = None
+        if predictor == PredictorType.SUPERVISED:
+            self.prediction = None
         self.reset()
 
     @staticmethod
@@ -63,7 +88,8 @@ class SimulatorEnv(gym.Env):
     def get_state(self) -> dict:
         self_pos_normalized = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1])
         obj_pos_guess = (self.widowx.x_cube, self.widowx.y_cube) \
-            if use_real_pos else self.prediction
+            if predictor == PredictorType.REAL else self.prediction if predictor == PredictorType.SUPERVISED \
+            else SimulatorEnv.yagel_predict(self.widowx.get_image())
         obj_pos_normalized = self.regular_to_normalized(obj_pos_guess[0], obj_pos_guess[1])
         new_state = {"self_pos": np.array([self_pos_normalized[0], self_pos_normalized[1]]),
                      "obj_pos": np.array([obj_pos_normalized[0], obj_pos_normalized[1]])}
@@ -111,7 +137,8 @@ class SimulatorEnv(gym.Env):
             print("calling reset in env")
         self.widowx.reset()
         self.unsuccessful = 0
-        self.prediction = predict_from_img(self.widowx.get_image())
+        if predictor == PredictorType.SUPERVISED:
+            self.prediction = predict_from_img(self.widowx.get_image())
         return self.get_state()
 
 

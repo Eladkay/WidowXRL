@@ -1,4 +1,5 @@
 import math
+from enum import Enum
 from typing import Tuple
 import cv2
 
@@ -53,12 +54,19 @@ class EpsilonFunctions:
         return (h + w) / 50
 
 
+class PredictorType(Enum):
+    REAL = 1
+    SUPERVISED = 2
+    YAGEL = 3
+
+
 # simulator and environment parameters
 
 cf = 20  # caution factor
 epsilon_function = EpsilonFunctions.linear_avg  # distance squared units
 step_size_function = StepSizeFunctions.linear_avg  # distance units
 max_unsuccessful_grabs = 1000
+predictor = PredictorType.YAGEL
 
 # algorithm parameters
 
@@ -70,10 +78,10 @@ buffer_size = 1_000_000
 
 # image creator parameters
 
-background = cv2.imread('images/background.png')
-cubes = [cv2.imread('images/final_cube1.png'), cv2.imread('images/final_cube2.png'), cv2.imread(
-    'images/final_cube3.png')]
-write_image_to_file = False
+background = cv2.imread('../images/background.png')
+cubes = [cv2.imread('../images/final_cube1.png'), cv2.imread('../images/final_cube2.png'), cv2.imread(
+    '../images/final_cube3.png')]
+write_image_to_file = True
 resize_factor = 4
 
 # predictor parameters
@@ -87,4 +95,3 @@ reporting_frequency = 50
 print_steps = False
 announce_out_of_bounds = False
 print_state = True
-use_real_pos = False
