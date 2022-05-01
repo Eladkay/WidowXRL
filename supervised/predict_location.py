@@ -3,8 +3,8 @@ import cv2
 import keras
 import imutils
 from random import randint
-from Aux import *
-
+from rl_project.image_creator import *
+from rl_project.config import *
 x_model = keras.models.load_model('x_model.h5')
 y_model = keras.models.load_model('y_model.h5')
 
@@ -12,14 +12,14 @@ y_model = keras.models.load_model('y_model.h5')
 def predict(x, y):
     cv2.imwrite('predict.png', create_binary_img(x, y))
     img = cv2.imread('predict.png') / 255
-    img = imutils.resize(img, width=int(img.shape[1] / RESIZE_FACTOR))
+    img = imutils.resize(img, width=int(img.shape[1] / resize_factor))
     img = np.array([img])
 
     x_pred = x_model(img)[0]
     y_pred = y_model(img)[0]
 
-    print(f'x: Real: {x}, Predicted: {np.argmax(x_pred) * RESIZE_FACTOR}')
-    print(f'y: Real: {y}, Predicted: {np.argmax(y_pred) * RESIZE_FACTOR})',
+    print(f'x: Real: {x}, Predicted: {np.argmax(x_pred) * resize_factor}')
+    print(f'y: Real: {y}, Predicted: {np.argmax(y_pred) * resize_factor})',
           end='\n\n')
 
 

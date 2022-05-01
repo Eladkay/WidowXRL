@@ -1,7 +1,7 @@
 import random
-import image_creator
+from rl_project.image_creator import *
 
-from config import *
+from rl_project.config import *
 
 count_training_rounds = False
 rewards = []  # for debug
@@ -10,8 +10,7 @@ rewards = []  # for debug
 class WidowXSimulator:
     def __init__(self, widowx):
         self.widowx = widowx
-        self.background = cv2.imread('images/background.png')
-        self.w, self.h, _ = self.background.shape
+        self.w, self.h, _ = background.shape
         self.x_cube = random.randint(cf, self.w - cf)
         self.y_cube = random.randint(cf, self.h - cf)
         self.pos = ((self.bounds()[0][0] + self.bounds()[0][1]) / 2, (self.bounds()[1][0] + self.bounds()[1][1]) / 2)
@@ -19,7 +18,7 @@ class WidowXSimulator:
         self.training_rounds = 0
         self.repetitions = 0
         self.last_action = 0
-        self.image = image_creator.create_binary_img(self.y_cube, self.x_cube)
+        self.image = create_binary_img(self.y_cube, self.x_cube)
         if debug:
             print(f"Size: {self.w, self.h}")
 
@@ -56,18 +55,20 @@ class WidowXSimulator:
     def distance_sq_from_target(self) -> float:
         return (self.pos[0] - self.x_cube) ** 2 + (self.pos[1] - self.y_cube) ** 2
 
-    def eval_pos(self) -> Tuple[bool, float]:
+    def eval_pos(self) -> Tuple[int, float]:
         reward = (epsilon_function(self.h, self.w) - self.distance_sq_from_target()) / self.diag_length_sq()
         self.found = reward >= 0
-        return self.found, reward
+        return 1 if self.found else 0, reward
 
     def reset(self):
         self.x_cube = random.randint(cf, self.w - cf)
         self.y_cube = random.randint(cf, self.h - cf)
         self.found = False
         self.pos = ((self.bounds()[0][0] + self.bounds()[0][1]) / 2, (self.bounds()[1][0] + self.bounds()[1][1]) / 2)
-        self.image = image_creator.create_binary_img(self.y_cube, self.x_cube)
+        self.image = create_binary_img(self.y_cube, self.x_cube)
 
     def get_image(self):
         return self.image
 
+    def get_image_shape(self):
+        return self.image.shape

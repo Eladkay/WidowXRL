@@ -2,8 +2,8 @@ import cv2
 import pickle
 import numpy as np
 from random import randint
-from Aux import *
-
+from rl_project.config import *
+from rl_project.image_creator import *
 
 def create_dataset(size):
     c = 50

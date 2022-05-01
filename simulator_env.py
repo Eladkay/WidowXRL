@@ -6,8 +6,10 @@ import numpy as np
 from gym.spaces import Box, Dict
 from gym.utils import seeding
 from numpy import ndarray
-from config import *
-from widowx_simulator import WidowXSimulator
+from rl_project.config import *
+from rl_project.widowx import GenericWidowX
+from rl_project.widowx_multisimulator import WidowXMultiSimulator
+from rl_project.widowx_simulator import WidowXSimulator
 
 actions_dim = 1
 
@@ -37,11 +39,11 @@ class SimulatorEnv(gym.Env):
         new_img[:, :, 1] = old_img[:, :, 1] * 2 / 3 + old_img[:, :, 2] / 3
         return new_img
 
-    def __init__(self, widowx: WidowXSimulator = WidowXSimulator(None)):  # later remove type annotation
+    def __init__(self, widowx: GenericWidowX):
         self.widowx = widowx
         self.action_space = Box(low=-1, high=1, shape=(2,), dtype=np.float32)
         self.observation_space = Dict({"pos": Box(low=0, high=1, shape=(2, ), dtype=np.float32),
-                                       "image": Box(low=0, high=255, shape=(320, 430, 1), dtype=np.uint8)})
+                                       "image": Box(low=0, high=255, shape=widowx.get_image_shape(), dtype=np.uint8)})
         self.successful_grabs = 0
         self.iteration = 0
         self.unsuccessful = 0
@@ -55,8 +57,12 @@ class SimulatorEnv(gym.Env):
         # assert self.action_space.contains(action), f"Action {action} not in action space, {self.action_space}"
 
         if debug and reporting_frequency > 0 and self.iteration % reporting_frequency == 0:
-            print("calling step: ", action, " x_cube: ", self.widowx.x_cube, " y_cube: ", self.widowx.y_cube,
-                  "x_actor: ", self.widowx.pos[0], " y_actor: ", self.widowx.pos[1])
+            if self.widowx is WidowXSimulator:
+                print("calling step: ", action, " x_cube: ", self.widowx.x_cube, " y_cube: ", self.widowx.y_cube,
+                      "x_actor: ", self.widowx.get_pos()[0], " y_actor: ", self.widowx.get_pos()[1])
+            else:
+                print("calling step: ", action, " furthest distance", self.widowx.max_distance_sq_from_target(),
+                      "x_actor: ", self.widowx.get_pos()[0], " y_actor: ", self.widowx.get_pos()[1])
         self.iteration += 1
 
         if self.iteration == training_start:
@@ -65,7 +71,7 @@ class SimulatorEnv(gym.Env):
 
         self.widowx.step(action)
         is_cube_in_gripper, reward = self.widowx.eval_pos()
-        pos_normalized = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1])
+        pos_normalized = self.regular_to_normalized(self.widowx.get_pos()[0], self.widowx.get_pos()[1])
         new_state = {"pos": np.array([pos_normalized[0], pos_normalized[1]]),
                 "image": self.widowx.get_image()}
         if is_cube_in_gripper:
@@ -92,7 +98,7 @@ class SimulatorEnv(gym.Env):
             print("calling reset in env")
         self.widowx.reset()
         self.unsuccessful = 0
-        pos_normalized = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1])
+        pos_normalized = self.regular_to_normalized(self.widowx.get_pos()[0], self.widowx.get_pos()[1])
         return {"pos": np.array([pos_normalized[0], pos_normalized[1]]),
                 "image": self.widowx.get_image()}
 
@@ -100,6 +106,6 @@ class SimulatorEnv(gym.Env):
 def register_env():
     gym.envs.register(
         id='SimulatorEnv-v0',
-        entry_point='simulator_env:SimulatorEnv',
+        entry_point='rl_project.simulator_env:SimulatorEnv',
         max_episode_steps=1000,
     )

@@ -1,18 +1,19 @@
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import TD3
-from widowx_simulator import *
-from simulator_env import *
-from config import *
+from rl_project.widowx_simulator import *
+from rl_project.simulator_env import *
+from rl_project.config import *
 
 
 def check_simulator_env():
-    simulator = WidowXSimulator(None)
-    env = gym.make('SimulatorEnv-v0', widowx=simulator)
+    simulator = WidowXMultiSimulator()
+    env = SimulatorEnv(simulator)  # gym.make('SimulatorEnv-v0', widowx=simulator)
     check_env(env, warn=True, skip_render_check=True)
 
 
 def do_agent():
-    env = gym.make('SimulatorEnv-v0')
+    simulator = WidowXMultiSimulator()
+    env = SimulatorEnv(simulator)  #gym.make('SimulatorEnv-v0', widowx=simulator)
     model = TD3('MultiInputPolicy', env, verbose=1, learning_starts=training_start, train_freq=(10, "episode"),
                 learning_rate=(lambda x: learning_rate_function(x) * (learning_rate_max_rate - learning_rate_min_rate)
                                          + learning_rate_min_rate), tensorboard_log="tb_logs", buffer_size=buffer_size)

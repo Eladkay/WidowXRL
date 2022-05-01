@@ -1,7 +1,8 @@
+import numpy
 import numpy as np
 import cv2
 from random import randint
-from config import *
+from rl_project.config import *
 
 
 # noinspection DuplicatedCode
@@ -48,4 +49,32 @@ def create_binary_img(x_img, y_img):
 
     if write_image_to_file:
         cv2.imwrite('images/overlay.png', final)
+    return final
+
+
+def create_multiimage(locations):
+    new_cube = np.zeros(background.shape)
+    for loc in locations:
+        cube = cubes[randint(0, len(cubes) - 1)]
+        x_middle, y_middle = loc
+
+        x_offset = int(x_middle - (cube.shape[0] / 2))
+        y_offset = int(y_middle - (cube.shape[1] / 2))
+
+        new_cube[y_offset:y_offset + cube.shape[0], x_offset:x_offset + cube.shape[1]] = cube
+
+    # create overlay img
+    final = np.zeros(background.shape)
+    w, h, c = background.shape
+    for iw in range(w):
+        for ih in range(h):
+            if not new_cube[iw][ih].any():
+                final[iw][ih] = background[iw][ih]
+            else:
+                final[iw][ih] = new_cube[iw][ih]
+
+    cv2.imwrite('new_overlay.png', final)
+
+    w, h, _ = background.shape
+    final = cv2.resize(final, (int(h / resize_factor), int(w / resize_factor)))
     return final
