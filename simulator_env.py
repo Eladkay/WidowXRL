@@ -63,6 +63,7 @@ class SimulatorEnv(gym.Env):
             else:
                 print("calling step: ", action, " furthest distance", self.widowx.max_distance_sq_from_target(),
                       "x_actor: ", self.widowx.get_pos()[0], " y_actor: ", self.widowx.get_pos()[1])
+                print(self.widowx.locations)
         self.iteration += 1
 
         if self.iteration == training_start:
