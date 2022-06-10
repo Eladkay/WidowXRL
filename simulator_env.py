@@ -15,23 +15,41 @@ actions_dim = 1
 
 
 class SimulatorEnv(gym.Env):
-    def render(self, mode='human'):
-        pass
-
-    def normalized_to_regular(self, x, y, distance=None, angle=None):
-        return ((1 - x) * (self.widowx.bounds()[0][0] - self.widowx.bounds()[0][1]) + x * (self.widowx.bounds()[0][1]),
-                (1 - y) * (self.widowx.bounds()[1][0] - self.widowx.bounds()[1][1]) + y * (self.widowx.bounds()[1][1]),
-                distance * self.widowx.diag_length_sq() if distance else 0.0,
-                2 * math.pi * angle - math.pi if angle else 0.0)
 
     def regular_to_normalized(self, x, y, distance=None, angle=None):
+        """
+        Normalizes values to be in their standard range: [0, 1] for x, y and distance which are given in absolute
+        units and [0, 1] for angles given in the range (-pi, pi]
+        :param x: The x value to normalize
+        :param y: The y value to normalize
+        :param distance: The distance to normalize, if any
+        :param angle: The angle to normalize, if any
+        :return: The normalized values. If distance or angle are omitted, 0.0 is returned in their place.
+        """
         return ((x - self.widowx.bounds()[0][0]) / (self.widowx.bounds()[0][1] - self.widowx.bounds()[0][0]),
                 (y - self.widowx.bounds()[1][0]) / (self.widowx.bounds()[1][1] - self.widowx.bounds()[1][0]),
                 distance / self.widowx.diag_length_sq() if distance else 0.0,
                 angle / (2 * math.pi) + 0.5 if angle else 0.0)
 
+    def normalized_to_regular(self, x, y, distance=None, angle=None):
+        """
+        Performs the inverse function to SimulatorEnv#regular_to_normalized.
+        :return: x, y and distance values given in absolute units and angle values given in the range (-pi, pi].
+        """
+        return ((1 - x) * (self.widowx.bounds()[0][0] - self.widowx.bounds()[0][1]) + x * (self.widowx.bounds()[0][1]),
+                (1 - y) * (self.widowx.bounds()[1][0] - self.widowx.bounds()[1][1]) + y * (self.widowx.bounds()[1][1]),
+                distance * self.widowx.diag_length_sq() if distance else 0.0,
+                2 * math.pi * angle - math.pi if angle else 0.0)
+
     @staticmethod
     def reduce_dim(old_img: ndarray) -> ndarray:
+        """
+        Reduces the dimension of the image from 3 to 2 by performing a weighted average between the (less important)
+        blue component and the other components. This is done because the cubes that are used are red, and there is no
+        natural blue in the images.
+        :param old_img: The image whose dimension to reduce.
+        :return: The reduced-dimension image.
+        """
         h, w, d = old_img.shape
         assert d == 3
         new_img = np.zeros((h, w, 2))
@@ -41,7 +59,11 @@ class SimulatorEnv(gym.Env):
 
     def __init__(self, widowx: GenericWidowX):
         self.widowx = widowx
+
+        # Action spaces supported by GenericWidowX are given as [-1, 1] multiplies of the step size.
         self.action_space = Box(low=-1, high=1, shape=(2,), dtype=np.float32)
+
+        # Environment varies between experiments - set by default to be a dict of position and image.
         self.observation_space = Dict({"pos": Box(low=0, high=1, shape=(2, ), dtype=np.float32),
                                        "image": Box(low=0, high=255, shape=widowx.get_image_shape(), dtype=np.uint8)})
         self.successful_grabs = 0
@@ -54,8 +76,6 @@ class SimulatorEnv(gym.Env):
         return math.atan2(b[1] - a[1], b[0] - a[0])
 
     def step(self, action) -> Tuple[dict, float, bool, dict]:
-        # assert self.action_space.contains(action), f"Action {action} not in action space, {self.action_space}"
-
         if debug and reporting_frequency > 0 and self.iteration % reporting_frequency == 0:
             if self.widowx is WidowXSimulator:
                 print("calling step: ", action, " x_cube: ", self.widowx.x_cube, " y_cube: ", self.widowx.y_cube,

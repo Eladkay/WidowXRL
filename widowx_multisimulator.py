@@ -2,6 +2,7 @@ from random import randint
 import numpy as np
 from rl_project.config import *
 from rl_project.image_creator import create_multiimage
+from rl_project.widowx import GenericWidowX
 
 
 def distance(a, b):
@@ -9,13 +10,12 @@ def distance(a, b):
 
 
 # noinspection DuplicatedCode
-class WidowXMultiSimulator:
+class WidowXMultiSimulator(GenericWidowX):
 
     # INTERFACE FUNCTIONS
 
     def __init__(self, num=3):
         self.original_num = num
-
         self.min_bounds = (cf, cf)
         self.max_bounds = (background.shape[0] - cf, background.shape[1] - cf)
         self.h, self.w = background.shape[0], background.shape[1]
@@ -24,7 +24,7 @@ class WidowXMultiSimulator:
         self.image = create_multiimage(self.locations)
         self.pos = ((self.min_bounds[0] + self.max_bounds[1]) / 2, (self.min_bounds[0] + self.max_bounds[1]) / 2)
 
-    def step(self, steps: Tuple[float, float]) -> (Tuple[float, float], np.ndarray, bool, bool):
+    def step(self, steps: Tuple[float, float]) -> Tuple[float, float]:
         step_size_x, step_size_y = step_size_function(self.h, self.w)
         step_x, step_y = steps[0] * step_size_x, steps[1] * step_size_y
         bound_x_min, bound_x_max = self.min_bounds
@@ -38,16 +38,14 @@ class WidowXMultiSimulator:
                     WidowXMultiSimulator.clip(self.pos[1] + change[1], bound_y_min, bound_y_max))
         if print_steps:
             print("Step: ", change)
-        found_cube = False
         for loc in self.locations:
             if distance(loc, self.pos) < epsilon_function(self.max_bounds[0], self.min_bounds[0]):
                 # remove cube
                 self.locations.remove(loc)
                 self.image = create_multiimage(self.locations)
-                found_cube = True
-        if write_image_to_file:
+        if debug:
             cv2.imwrite("current.png", self.image)
-        return self.pos, self.image, found_cube, not(len(self.locations))
+        return self.pos
 
     def reset(self):
         self.locations = self.generate_random(self.original_num)
@@ -73,9 +71,6 @@ class WidowXMultiSimulator:
         self.found = reward >= (self.max_reward() * 0.5)
         return self.original_num - len(self.locations) + (1 if self.found else 0), reward
 
-    def get_image_shape(self):
-        return self.image.shape
-
     # HELPER FUNCTIONS
 
     def max_distance_sq_from_target(self) -> float:
@@ -83,13 +78,6 @@ class WidowXMultiSimulator:
         for loc in self.locations:
             max_distance = max(max_distance, distance(loc, self.pos))
         return max_distance
-
-    def diag_length_sq(self) -> float:
-        return (self.bounds()[0][1] - self.bounds()[0][0]) ** 2 + (self.bounds()[1][1] - self.bounds()[1][0]) ** 2
-
-    @staticmethod
-    def clip(value: float, min_value: float, max_value: float) -> float:
-        return max(min(value, max_value), min_value)
 
     def generate_random(self, num):
         min_, max_ = self.min_bounds, self.max_bounds
@@ -108,4 +96,3 @@ class WidowXMultiSimulator:
                 num -= 1
 
         return locs
-
