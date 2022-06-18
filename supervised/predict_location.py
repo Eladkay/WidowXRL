@@ -3,6 +3,7 @@ import cv2
 import keras
 import imutils
 from random import randint
+
 from rl_project.config import resize_factor, background, base_model_path
 from rl_project.supervised.create_dataset import create_binary_img
 from rl_project.util.numpy_lru_cache_decorator import np_cache

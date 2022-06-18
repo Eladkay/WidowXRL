@@ -3,8 +3,7 @@ import pickle
 import numpy as np
 from random import randint
 from rl_project.config import *
-from rl_project.image_creator import create_img, create_binary_img
-
+from rl_project.image_creator import *
 
 def create_dataset(size, c, notify=0):
     labels = []

@@ -1,80 +1,31 @@
 import math
 from typing import Tuple
 import cv2
-
-
-class LearningRateFunctions:
-    @staticmethod
-    def constant(x: float) -> float:
-        return 1.0
-
-    @staticmethod
-    def linear(x: float) -> float:
-        return x
-
-    one_over_one_minus_e = 1 / (1 - math.e)
-
-    @staticmethod
-    def exponential(x: float) -> float:
-        return (1 - (math.e ** x)) * LearningRateFunctions.one_over_one_minus_e
-
-    one_over_one_minus_cos_of_one = 1 / (1 - math.cos(1))
-
-    @staticmethod
-    def cosine(x: float) -> float:
-        return (1-math.cos(x)) * LearningRateFunctions.one_over_one_minus_cos_of_one
-
-    @staticmethod
-    def quadratic(x: float) -> float:
-        return x ** 2
-
-    @staticmethod
-    def inv_quadratic(x: float) -> float:
-        return 1 - (x - 1) ** 2
-
-
-class StepSizeFunctions:
-    @staticmethod
-    def constant(h: float, w: float) -> Tuple[float, float]:
-        return 10.0, 10.0
-
-    @staticmethod
-    def linear_avg(h: float, w: float) -> Tuple[float, float]:
-        return (h + w) / 75, (h + w) / 75
-
-
-class EpsilonFunctions:
-    @staticmethod
-    def constant(h: float, w: float) -> float:
-        return 15
-
-    @staticmethod
-    def linear_avg(h: float, w: float) -> float:
-        return (h + w) / 50
-
-
 # simulator and environment parameters
 
-cf = 20  # caution factor
-epsilon_function = EpsilonFunctions.linear_avg  # distance squared units
-step_size_function = StepSizeFunctions.linear_avg  # distance units
-max_unsuccessful_grabs = 1000
+cf = 50  # caution factor - how many pixels from each edge in the photo should be kept without cubes
+epsilon_function = lambda h, w: (h + w) / 50  # used in determination of reward, has distance squared units
+step_size_function = lambda h, w: ((h + w) / 300, (h + w) / 300)  # size of steps that can be taken
+max_unsuccessful_grabs = 4000  # maximum number of grabs before we declare the episode unsuccessful
 
-# algorithm parameters
+# reinforcement learning-specific parameters
 
-training_start = 500_000
-learning_rate_function = LearningRateFunctions.inv_quadratic
-learning_rate_max_rate = 1e-3
+training_start = 500_000  # number of random steps that are taken before online training starts
+learning_rate_max_rate = 1e-3  # learning rate varies linearly between the minimum and maximum rates here
 learning_rate_min_rate = 1e-6
-buffer_size = 1_000_000
+buffer_size = 200_000  # the buffer size for the algorithm
 
 # image creator parameters
+background = cv2.imread('rl_project/images/background.png')
+cubes = map(lambda x: cv2.imread(x), ['rl_project/images/final_cube1.png', 'rl_project/images/final_cube2.png',
+                                      'rl_project/images/final_cube3.png'])
+resize_factor = 4  # factor by which images created are made smaller (decreasing the amount of data)
 
-background = cv2.imread('images/background.png')
-cubes = [cv2.imread('images/final_cube1.png'), cv2.imread('images/final_cube2.png'), cv2.imread(
-    'images/final_cube3.png')]
-write_image_to_file = False
-resize_factor = 4
+# multi-cube simulator parameters
+
+min_distance_between_cubes = 50  # will not place two simulated cubes closer than this distance
+capture_bonus_factor = 0.8  # controls the relative amount of reward given for cubes already captured
+                            # versus the new cube to be captured
 
 # predictor parameters
 
@@ -82,8 +33,9 @@ base_model_path = "/tmp/pycharm_project_970/rl_project/supervised"
 
 # debug settings
 
-debug = True
-reporting_frequency = 50
+debug = True  # enables various additional prints and writes for debugging purposes
+reporting_frequency = 10000
+
 print_steps = False
 announce_out_of_bounds = False
 print_state = True

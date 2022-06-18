@@ -5,7 +5,7 @@ from keras.regularizers import l2
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Conv2D, Activation, BatchNormalization, MaxPooling2D, Dropout
 import imutils
-from rl_project.config import resize_factor
+from rl_project.config import *
 
 def create_model(X, Y, *, last_layer_size, epochs=1, model_name='model.h5'):
     print(f'Creating model: {model_name}')
