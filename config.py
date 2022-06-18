@@ -1,7 +1,6 @@
 import math
 from typing import Tuple
 import cv2
-
 # simulator and environment parameters
 
 cf = 50  # caution factor - how many pixels from each edge in the photo should be kept without cubes
@@ -28,10 +27,16 @@ min_distance_between_cubes = 50  # will not place two simulated cubes closer tha
 capture_bonus_factor = 0.8  # controls the relative amount of reward given for cubes already captured
                             # versus the new cube to be captured
 
+# predictor parameters
+
+base_model_path = "/tmp/pycharm_project_970/rl_project/supervised"
+
 # debug settings
 
 debug = True  # enables various additional prints and writes for debugging purposes
 reporting_frequency = 10000
+
 print_steps = False
 announce_out_of_bounds = False
-print_state = False
+print_state = True
+use_real_pos = False

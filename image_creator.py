@@ -39,13 +39,14 @@ def create_binary_img(x_cube_in_img, y_cube_in_img):
 
     # create overlay image
     w, h, c = background.shape
-    final = np.zeros((w, h, 1), )
+    final = np.zeros((w, h, 3), )
     for iw in range(w):
         for ih in range(h):
-            if not new_cube[iw][ih].any():
-                final[iw][ih] = 0
-            else:
-                final[iw][ih] = 255
+            for iz in range(3):
+                if not new_cube[iw][ih].any():
+                    final[iw][ih][iz] = 0
+                else:
+                    final[iw][ih][iz] = 255
 
     if debug:
         cv2.imwrite('images/overlay.png', final)

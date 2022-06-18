@@ -2,6 +2,8 @@ import math
 from typing import Tuple
 
 import gym
+import tensorboard
+import tensorflow
 import numpy as np
 from gym.spaces import Box, Dict
 from gym.utils import seeding
@@ -30,6 +32,7 @@ class SimulatorEnv(gym.Env):
                 (y - self.widowx.bounds()[1][0]) / (self.widowx.bounds()[1][1] - self.widowx.bounds()[1][0]),
                 distance / self.widowx.diag_length_sq() if distance else 0.0,
                 angle / (2 * math.pi) + 0.5 if angle else 0.0)
+        return clip(x_n, 0, 1), clip(y_n, 0, 1), clip(d_n, 0, 1), clip(a_n, 0, 1)
 
     def normalized_to_regular(self, x, y, distance=None, angle=None):
         """
@@ -62,18 +65,29 @@ class SimulatorEnv(gym.Env):
 
         # Action spaces supported by GenericWidowX are given as [-1, 1] multiplies of the step size.
         self.action_space = Box(low=-1, high=1, shape=(2,), dtype=np.float32)
-
+                
         # Environment varies between experiments - set by default to be a dict of position and image.
         self.observation_space = Dict({"pos": Box(low=0, high=1, shape=(2, ), dtype=np.float32),
                                        "image": Box(low=0, high=255, shape=widowx.get_image_shape(), dtype=np.uint8)})
         self.successful_grabs = 0
         self.iteration = 0
         self.unsuccessful = 0
+        self.failures = 0
+        self.prediction = None
         self.reset()
 
     @staticmethod
     def get_direction_between_points(a, b):
         return math.atan2(b[1] - a[1], b[0] - a[0])
+
+    def get_state(self) -> dict:
+        self_pos_normalized = self.regular_to_normalized(self.widowx.pos[0], self.widowx.pos[1])
+        obj_pos_guess = (self.widowx.x_cube, self.widowx.y_cube) \
+            if use_real_pos else self.prediction
+        obj_pos_normalized = self.regular_to_normalized(obj_pos_guess[0], obj_pos_guess[1])
+        new_state = {"self_pos": np.array([self_pos_normalized[0], self_pos_normalized[1]]),
+                     "obj_pos": np.array([obj_pos_normalized[0], obj_pos_normalized[1]])}
+        return new_state
 
     def step(self, action) -> Tuple[dict, float, bool, dict]:
         if debug and reporting_frequency > 0 and self.iteration % reporting_frequency == 0:
@@ -102,8 +116,11 @@ class SimulatorEnv(gym.Env):
             if self.unsuccessful == max_unsuccessful_grabs:
                 self.unsuccessful = 0
                 is_cube_in_gripper = True
+                if self.iteration > training_start:
+                    self.failures += 1
         if debug and reporting_frequency > 0 and self.iteration % reporting_frequency == 0:
-            print(f'got reward: {reward}. iteration: {self.iteration}, successful grab: {self.successful_grabs}')
+            print(f'got reward: {reward}. iteration: {self.iteration}, successful grab: {self.successful_grabs}, '
+                  f'failures after training start: {self.failures}')
             if print_state:
                 print(f"state: {new_state, is_cube_in_gripper}")
             if self.successful_grabs > 0:
@@ -130,3 +147,4 @@ def register_env():
         entry_point='rl_project.simulator_env:SimulatorEnv',
         max_episode_steps=1000,
     )
+
