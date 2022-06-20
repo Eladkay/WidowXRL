@@ -7,7 +7,7 @@ This class implements a WidowX interface supporting various simulated (or real) 
 The implementations of this class are:
 WidowXSimulator - A one-cube simulator
 WidowXMultiSimulator - A multi-cube simulator
-WidowXInterface (will write if time allows, otherwise easy) - A real WidowX interface
+WidowXInterface - A real WidowX interface
 """
 
 
