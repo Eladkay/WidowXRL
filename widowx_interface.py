@@ -1,14 +1,20 @@
+from typing import Tuple, Callable
+
+from rl_project import config
 from rl_project.widowx import GenericWidowX
 
 
 class WidowXInterface(GenericWidowX):
 
-    def __init__(self, widowx):
+    def __init__(self, widowx, step_sizes, bounds, reward: Callable[[Tuple[float, float]], float]):
         """
         :param widowx: the WidowX object to use, must have move_to_xyz implemented!
         """
         self.widowx = widowx
         self.location = (0, 0)
+        self.step_sizes = step_sizes
+        self.bounds = bounds
+        self.reward = reward
         self.gripper_open = True
 
         # open camera
@@ -17,13 +23,22 @@ class WidowXInterface(GenericWidowX):
         # call reset to move to neutral position
         self.reset()
 
-    def step(self, location):
-        """
-        Moves the WidowX to the given location.
-        Warning: will not throw an exception if the parameter is not a valid location.
-        :return: True if the move was successful, False otherwise.
-        """
-        return self.move_to_location(*location)
+    def step(self, steps: Tuple[float, float]) -> Tuple[float, float]:
+        self.location += (steps[0] * self.step_sizes[0], steps[1] * self.step_sizes[1])
+        self.move_to_location(*self.location)
+        return self.location
+
+    def eval_pos(self) -> Tuple[int, float]:
+        self.grab_cube()
+        self.widowx.move_to_eval()
+        parking_place, _ = self.widowx.parking_manager.get_parking_place(self.widowx.classifier)
+        is_cube_in_gripper = parking_place != -1
+        if config.debug:
+            print("Gripper evaluation: " + str(is_cube_in_gripper))
+        if not is_cube_in_gripper:
+            self.widowx.open_gripper()
+            self.gripper_open = True
+        return is_cube_in_gripper, self.reward(self.location)
 
     def get_pos(self):
         return self.location
@@ -35,6 +50,10 @@ class WidowXInterface(GenericWidowX):
         # reset gripper
         self.gripper_open = True
         self.widowx.open_gripper()
+        return self.get_image()
+
+    def bounds(self) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+        return self.bounds
 
     def get_image(self):
         location = self.location
@@ -50,7 +69,7 @@ class WidowXInterface(GenericWidowX):
         """
         location = self.location
         self.move_to_location(0, 0)
-        img = _self.detect_red(self.widowx.parking_manager.img)
+        img = self._detect_red(self.widowx.parking_manager.img)
         w, h = img.shape
         for i in range(w):
             for j in range(h):
