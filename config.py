@@ -17,8 +17,8 @@ buffer_size = 200_000  # the buffer size for the algorithm
 
 # image creator parameters
 background = cv2.imread('rl_project/images/background.png')
-cubes = map(lambda x: cv2.imread(x), ['rl_project/images/final_cube1.png', 'rl_project/images/final_cube2.png',
-                                      'rl_project/images/final_cube3.png'])
+cubes = list(map(cv2.imread, ['rl_project/images/final_cube1.png', 'rl_project/images/final_cube2.png',
+                                      'rl_project/images/final_cube3.png']))
 resize_factor = 4  # factor by which images created are made smaller (decreasing the amount of data)
 
 # multi-cube simulator parameters
