@@ -17,6 +17,14 @@ class WidowXInterface(GenericWidowX):
         # call reset to move to neutral position
         self.reset()
 
+    def step(self, location):
+        """
+        Moves the WidowX to the given location.
+        Warning: will not throw an exception if the parameter is not a valid location.
+        :return: True if the move was successful, False otherwise.
+        """
+        return self.move_to_location(*location)
+
     def get_pos(self):
         return self.location
 
